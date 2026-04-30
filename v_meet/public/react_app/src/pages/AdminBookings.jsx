@@ -100,7 +100,7 @@ const AdminBookings = () => {
   if (!isAdmin) return null;
 
   return (
-    <main className="pt-24 pb-12 px-6 max-w-7xl mx-auto">
+    <main className="pt-8 pb-12 px-6 max-w-7xl mx-auto">
       {/* Toast */}
       {toast && (
         <div

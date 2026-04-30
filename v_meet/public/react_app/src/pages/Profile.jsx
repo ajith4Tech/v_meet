@@ -23,7 +23,7 @@ const Profile = () => {
   };
 
   if (loading) {
-    return <div className="p-8 text-center pt-24 min-h-screen">Loading Profile...</div>;
+    return <div className="p-8 text-center pt-8 min-h-screen">Loading Profile...</div>;
   }
 
   const name = user?.full_name || user?.name || 'Administrator';
@@ -31,7 +31,7 @@ const Profile = () => {
   const roles = user?.roles?.map(r => r.role) || ['Administrator'];
 
   return (
-    <main className="pt-24 pb-12 px-6 max-w-4xl mx-auto w-full min-h-screen">
+    <main className="pt-8 pb-12 px-6 max-w-4xl mx-auto w-full min-h-screen">
       <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 flex flex-col md:flex-row gap-8 items-start">
         <div className="flex-shrink-0 flex flex-col items-center gap-4">
           {user && user.user_image ? (

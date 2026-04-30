@@ -86,7 +86,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full flex-1 min-h-screen">
+    <div className="p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full flex-1 min-h-screen pt-8">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
@@ -140,25 +140,25 @@ const Dashboard = () => {
 
       {/* Bookings Table Container */}
       <div className="bg-white rounded-xl card-shadow border border-slate-100 overflow-hidden">
-        {/* Table Header with Search + Filter */}
-        <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center gap-4">
-          <div className="flex items-center gap-4 flex-1">
-            <h4 className="text-body-lg font-bold whitespace-nowrap">Recent Reservations</h4>
-            <div className="hidden sm:flex items-center bg-slate-50 border border-slate-100 rounded-lg px-2 py-1">
+        {/* Table Header */}
+        <div className="p-5 border-b border-slate-100">
+          {/* Row 1: title + count */}
+          <div className="flex items-center gap-4 mb-4">
+            <h4 className="text-body-lg font-bold">Recent Reservations</h4>
+            <div className="flex items-center bg-slate-50 border border-slate-100 rounded-lg px-2 py-1">
               <span className="material-symbols-outlined text-xs text-slate-400 mr-1">history</span>
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Showing {filtered.length} of {bookings.length}</span>
             </div>
           </div>
-
-          {/* Search Bar */}
-          <div className="relative flex-1 max-w-xs">
+          {/* Row 2: search bar */}
+          <div className="relative mb-3">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
             <input
               type="text"
-              placeholder="Search room, user, date..."
+              placeholder="Search by room, user, location, or date..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 h-[38px] border border-slate-200 rounded-lg bg-slate-50 text-sm focus:outline-none focus:border-indigo-400 focus:bg-white transition-all"
+              className="w-full pl-9 pr-9 h-[40px] border border-slate-200 rounded-lg bg-slate-50 text-sm focus:outline-none focus:border-indigo-400 focus:bg-white transition-all"
             />
             {search && (
               <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -166,9 +166,8 @@ const Dashboard = () => {
               </button>
             )}
           </div>
-
-          {/* Status Filter Pills */}
-          <div className="flex items-center gap-1.5 flex-wrap">
+          {/* Row 3: filter pills */}
+          <div className="flex items-center gap-2 flex-wrap">
             {STATUS_FILTERS.map(s => (
               <button
                 key={s}

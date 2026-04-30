@@ -73,11 +73,11 @@ const ManageRooms = () => {
   };
 
   if (loading && rooms.length === 0) {
-    return <div className="p-8 text-center pt-24 min-h-screen">Loading Rooms...</div>;
+    return <div className="p-8 text-center pt-8 min-h-screen">Loading Rooms...</div>;
   }
 
   return (
-    <main className="pt-24 pb-12 px-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-gutter min-h-screen">
+    <main className="pt-8 pb-12 px-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-gutter min-h-screen">
       <div className="lg:col-span-4 flex flex-col gap-6">
         <div className="bg-white rounded-xl level-1-card p-6 border border-slate-100">
           <h2 className="font-h3 text-h3 text-on-surface mb-4">Add New Room</h2>

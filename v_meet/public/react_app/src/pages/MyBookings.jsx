@@ -101,11 +101,11 @@ const MyBookings = () => {
   });
 
   if (loading) {
-    return <div className="p-8 text-center pt-24 min-h-screen">Loading your bookings...</div>;
+    return <div className="p-8 text-center pt-8 min-h-screen">Loading your bookings...</div>;
   }
 
   return (
-    <div className="pt-24 pb-12 min-h-screen">
+    <div className="pt-8 pb-12 min-h-screen">
       <div className="max-w-6xl mx-auto px-6">
         {/* Page Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">

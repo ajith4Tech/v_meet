@@ -11,7 +11,7 @@ def update_booking_status(booking_name, status):
     user = frappe.session.user
     user_roles = frappe.get_roles(user)
 
-    if "Administrator" not in user_roles and "System Manager" not in user_roles:
+    if "Administrator" not in user_roles:
         frappe.throw(
             "You do not have permission to change booking status.",
             frappe.PermissionError
@@ -37,7 +37,7 @@ def get_current_user_info():
     """
     user = frappe.session.user
     user_roles = frappe.get_roles(user)
-    is_admin = "Administrator" in user_roles or "System Manager" in user_roles
+    is_admin = "Administrator" in user_roles
 
     return {
         "user": user,
