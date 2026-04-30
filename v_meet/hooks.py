@@ -247,3 +247,6 @@ app_license = "mit"
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
 
+website_route_rules = [
+	{"from_route": "/v_meet_app/<path:app_path>", "to_route": "v_meet_app"},
+]

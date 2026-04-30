@@ -1,32 +1,27 @@
-import { HashRouter, Routes, Route, Link } from "react-router-dom";
-
-function Dashboard() {
-  return <h2>Dashboard</h2>;
-}
-
-function Booking() {
-  return <h2>Booking Page</h2>;
-}
-
-function MyBookings() {
-  return <h2>My Bookings</h2>;
-}
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import BookRoom from './pages/BookRoom';
+import MyBookings from './pages/MyBookings';
+import ManageRooms from './pages/ManageRooms';
+import Profile from './pages/Profile';
+import AdminBookings from './pages/AdminBookings';
 
 function App() {
   return (
-    <HashRouter>
-      <nav>
-        <Link to="/">Dashboard</Link> |{" "}
-        <Link to="/book">Book</Link> |{" "}
-        <Link to="/my-bookings">My Bookings</Link>
-      </nav>
-
+    <Router basename="/v_meet_app">
       <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/book" element={<Booking />} />
-        <Route path="/my-bookings" element={<MyBookings />} />
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="book-room" element={<BookRoom />} />
+          <Route path="my-bookings" element={<MyBookings />} />
+          <Route path="manage-rooms" element={<ManageRooms />} />
+          <Route path="admin-bookings" element={<AdminBookings />} />
+          <Route path="profile" element={<Profile />} />
+        </Route>
       </Routes>
-    </HashRouter>
+    </Router>
   );
 }
 
