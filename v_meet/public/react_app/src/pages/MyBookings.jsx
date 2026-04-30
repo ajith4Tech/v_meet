@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getBookings, getRooms, getCurrentUser } from '../api';
 
+const STATUS_FILTERS = ['All', 'Pending', 'Approved', 'Occupied', 'Free To Use'];
+
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
 
   useEffect(() => {
     Promise.all([getBookings(), getRooms(), getCurrentUser()])
@@ -40,7 +44,7 @@ const MyBookings = () => {
     return diffMs / (1000 * 60 * 60);
   };
 
-  // Calculate stats
+  // Calculate stats from full booking list (unfiltered)
   let totalHours = 0;
   let roomCounts = {};
   
@@ -50,6 +54,7 @@ const MyBookings = () => {
   });
 
   let topRoom = 'None';
+  let topRoomName = 'None';
   let maxCount = 0;
   Object.entries(roomCounts).forEach(([room, count]) => {
     if (count > maxCount) {
@@ -58,7 +63,9 @@ const MyBookings = () => {
     }
   });
 
-  const topRoomDetails = getRoomDetails(topRoom);
+  // Get room_name for top room from actual booking data
+  const topRoomBooking = bookings.find(b => b.room === topRoom);
+  topRoomName = topRoomBooking?.room_name || topRoom;
 
   const formatTime = (dateStr) => {
     if (!dateStr) return '';
@@ -72,22 +79,35 @@ const MyBookings = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Approved': return { bg: 'bg-green-100', text: 'text-green-800', dot: 'bg-green-600' };
-      case 'Pending': return { bg: 'bg-amber-100', text: 'text-amber-800', dot: 'bg-amber-600' };
-      case 'Cancelled': return { bg: 'bg-red-100', text: 'text-red-800', dot: 'bg-red-600' };
-      default: return { bg: 'bg-slate-100', text: 'text-slate-800', dot: 'bg-slate-600' };
+      case 'Approved':    return { bg: 'bg-green-100', text: 'text-green-800', dot: 'bg-green-600' };
+      case 'Pending':     return { bg: 'bg-amber-100', text: 'text-amber-800', dot: 'bg-amber-600' };
+      case 'Cancelled':   return { bg: 'bg-red-100',   text: 'text-red-800',   dot: 'bg-red-600'   };
+      case 'Occupied':    return { bg: 'bg-red-100',   text: 'text-red-800',   dot: 'bg-red-600'   };
+      case 'Free To Use': return { bg: 'bg-indigo-100',text: 'text-indigo-800',dot: 'bg-indigo-600'};
+      default:            return { bg: 'bg-slate-100', text: 'text-slate-800', dot: 'bg-slate-600' };
     }
   };
+
+  // Apply search + status filter
+  const filtered = bookings.filter(b => {
+    const matchStatus = statusFilter === 'All' || b.status === statusFilter;
+    const q = search.toLowerCase();
+    const matchSearch = !q ||
+      (b.room_name || b.room || '').toLowerCase().includes(q) ||
+      (b.room_location || '').toLowerCase().includes(q) ||
+      formatDateStr(b.from_time).toLowerCase().includes(q) ||
+      (b.status || '').toLowerCase().includes(q);
+    return matchStatus && matchSearch;
+  });
 
   if (loading) {
     return <div className="p-8 text-center pt-24 min-h-screen">Loading your bookings...</div>;
   }
 
-  const todayStr = new Date().toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
-
   return (
     <div className="pt-24 pb-12 min-h-screen">
       <div className="max-w-6xl mx-auto px-6">
+        {/* Page Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
             <h2 className="font-h2 text-h2 text-on-surface mb-2">My Bookings</h2>
@@ -100,18 +120,69 @@ const MyBookings = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6">
-          {bookings.length === 0 ? (
-             <div className="bg-white rounded-xl p-6 text-center text-slate-500 shadow-sm border border-slate-100">
-               You don't have any bookings yet.
-             </div>
+        {/* Search + Filter Bar */}
+        <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 mb-6 flex flex-col md:flex-row items-start md:items-center gap-4">
+          {/* Search */}
+          <div className="relative flex-1 w-full">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+            <input
+              type="text"
+              placeholder="Search by room name, location, or date..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full pl-9 pr-9 h-[40px] border border-slate-200 rounded-lg bg-slate-50 text-sm focus:outline-none focus:border-indigo-400 focus:bg-white transition-all"
+            />
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <span className="material-symbols-outlined text-[16px]">close</span>
+              </button>
+            )}
+          </div>
+
+          {/* Status Filter Pills */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {STATUS_FILTERS.map(s => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+                  statusFilter === s
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+
+          {/* Result count */}
+          <span className="text-xs text-slate-400 whitespace-nowrap font-medium">
+            {filtered.length} of {bookings.length} bookings
+          </span>
+        </div>
+
+        {/* Bookings List */}
+        <div className="grid grid-cols-1 gap-4">
+          {filtered.length === 0 ? (
+            <div className="bg-white rounded-xl p-12 text-center shadow-sm border border-slate-100">
+              <span className="material-symbols-outlined text-slate-300 text-5xl block mb-3">search_off</span>
+              <p className="text-slate-600 font-semibold mb-1">No bookings match your search</p>
+              <p className="text-slate-400 text-sm mb-4">Try adjusting the filter or search term.</p>
+              <button
+                onClick={() => { setSearch(''); setStatusFilter('All'); }}
+                className="text-indigo-600 text-sm font-medium hover:underline"
+              >
+                Clear filters
+              </button>
+            </div>
           ) : (
-            bookings.map(booking => {
+            filtered.map(booking => {
               const colors = getStatusColor(booking.status);
               
               return (
                 <div key={booking.name} className="bg-white rounded-xl p-6 shadow-[0px_1px_3px_rgba(0,0,0,0.1),0px_1px_2px_rgba(0,0,0,0.06)] flex flex-col md:flex-row items-center gap-6 border border-transparent hover:border-primary-container/20 transition-all group">
-                  <div className="w-full md:w-48 h-32 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100 flex items-center justify-center">
+                  <div className="w-full md:w-40 h-28 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100 flex items-center justify-center">
                     <span className="material-symbols-outlined text-slate-400 text-4xl">meeting_room</span>
                   </div>
                   <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
@@ -138,9 +209,7 @@ const MyBookings = () => {
                       </div>
                     </div>
                     <div className="flex items-center md:justify-end gap-3">
-                      <button className="bg-primary/5 text-primary px-4 py-2 rounded-lg font-button text-sm hover:bg-primary/10 transition-colors">
-                        Details
-                      </button>
+                      <span className="text-xs font-mono bg-slate-50 text-slate-500 px-2 py-1 rounded border border-slate-100">{booking.name}</span>
                     </div>
                   </div>
                 </div>
@@ -149,7 +218,8 @@ const MyBookings = () => {
           )}
         </div>
 
-        <div className="mt-3xl grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Stats Section */}
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100">
             <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 mb-4">
               <span className="material-symbols-outlined">schedule</span>
@@ -170,7 +240,7 @@ const MyBookings = () => {
             <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600 mb-4">
               <span className="material-symbols-outlined">star</span>
             </div>
-            <h4 className="font-bold text-lg text-slate-900 mb-1">{topRoomDetails.room_name || topRoom}</h4>
+            <h4 className="font-bold text-lg text-slate-900 mb-1">{topRoomName}</h4>
             <p className="text-sm text-slate-700/70">Your most frequently booked space</p>
           </div>
         </div>

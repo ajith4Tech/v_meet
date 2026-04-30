@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { getBookings, getRooms } from '../api';
 
+const STATUS_FILTERS = ['All', 'Pending', 'Approved', 'Occupied', 'Free To Use'];
+
 const Dashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
 
   useEffect(() => {
     Promise.all([getBookings(), getRooms()])
@@ -32,10 +36,6 @@ const Dashboard = () => {
 
   const totalRooms = rooms.length;
 
-  const getRoomDetails = (roomName) => {
-    return rooms.find(r => r.name === roomName) || { room_name: roomName, location: 'Unknown' };
-  };
-
   const getInitials = (name) => {
     if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -60,12 +60,26 @@ const Dashboard = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Approved': return { bg: 'bg-green-100', text: 'text-green-800', dot: 'bg-green-500' };
-      case 'Pending': return { bg: 'bg-amber-100', text: 'text-amber-800', dot: 'bg-amber-500' };
-      case 'Cancelled': return { bg: 'bg-red-100', text: 'text-red-800', dot: 'bg-red-500' };
-      default: return { bg: 'bg-slate-100', text: 'text-slate-800', dot: 'bg-slate-500' };
+      case 'Approved':    return { bg: 'bg-green-100', text: 'text-green-800', dot: 'bg-green-500' };
+      case 'Pending':     return { bg: 'bg-amber-100', text: 'text-amber-800', dot: 'bg-amber-500' };
+      case 'Cancelled':   return { bg: 'bg-red-100',   text: 'text-red-800',   dot: 'bg-red-500'   };
+      case 'Occupied':    return { bg: 'bg-red-100',   text: 'text-red-800',   dot: 'bg-red-500'   };
+      case 'Free To Use': return { bg: 'bg-indigo-100',text: 'text-indigo-800',dot: 'bg-indigo-500'};
+      default:            return { bg: 'bg-slate-100', text: 'text-slate-800', dot: 'bg-slate-500' };
     }
   };
+
+  // Apply search + status filter
+  const filtered = bookings.filter(b => {
+    const matchStatus = statusFilter === 'All' || b.status === statusFilter;
+    const q = search.toLowerCase();
+    const matchSearch = !q ||
+      (b.room_name || b.room || '').toLowerCase().includes(q) ||
+      (b.user || '').toLowerCase().includes(q) ||
+      (b.room_location || '').toLowerCase().includes(q) ||
+      formatDateStr(b.from_time).toLowerCase().includes(q);
+    return matchStatus && matchSearch;
+  });
 
   if (loading) {
     return <div className="p-8 text-center">Loading Dashboard...</div>;
@@ -126,13 +140,48 @@ const Dashboard = () => {
 
       {/* Bookings Table Container */}
       <div className="bg-white rounded-xl card-shadow border border-slate-100 overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h4 className="text-body-lg font-bold">Recent Reservations</h4>
+        {/* Table Header with Search + Filter */}
+        <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center gap-4">
+          <div className="flex items-center gap-4 flex-1">
+            <h4 className="text-body-lg font-bold whitespace-nowrap">Recent Reservations</h4>
             <div className="hidden sm:flex items-center bg-slate-50 border border-slate-100 rounded-lg px-2 py-1">
               <span className="material-symbols-outlined text-xs text-slate-400 mr-1">history</span>
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Showing {bookings.length} results</span>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Showing {filtered.length} of {bookings.length}</span>
             </div>
+          </div>
+
+          {/* Search Bar */}
+          <div className="relative flex-1 max-w-xs">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+            <input
+              type="text"
+              placeholder="Search room, user, date..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full pl-9 pr-4 h-[38px] border border-slate-200 rounded-lg bg-slate-50 text-sm focus:outline-none focus:border-indigo-400 focus:bg-white transition-all"
+            />
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                <span className="material-symbols-outlined text-[16px]">close</span>
+              </button>
+            )}
+          </div>
+
+          {/* Status Filter Pills */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {STATUS_FILTERS.map(s => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+                  statusFilter === s
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {s}
+              </button>
+            ))}
           </div>
         </div>
         
@@ -148,12 +197,16 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-body-sm">
-              {bookings.length === 0 && (
+              {filtered.length === 0 && (
                 <tr>
-                  <td colSpan="5" className="px-6 py-8 text-center text-slate-500">No bookings found.</td>
+                  <td colSpan="5" className="px-6 py-12 text-center">
+                    <span className="material-symbols-outlined text-slate-300 text-4xl block mb-2">search_off</span>
+                    <p className="text-slate-500 font-medium">No bookings match your search.</p>
+                    <button onClick={() => { setSearch(''); setStatusFilter('All'); }} className="mt-2 text-indigo-600 text-sm hover:underline">Clear filters</button>
+                  </td>
                 </tr>
               )}
-              {bookings.map(booking => {
+              {filtered.map(booking => {
                 const colors = getStatusColor(booking.status);
                 return (
                   <tr key={booking.name} className="hover:bg-slate-50/30 transition-colors">
