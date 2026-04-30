@@ -9,6 +9,7 @@
   "booking_details_section",
   "user",
   "room",
+  "room_name",
   "from_time",
   "to_time",
   "status"
@@ -54,13 +55,19 @@
    "fieldname": "booking_details_section",
    "fieldtype": "Section Break",
    "label": "Booking Details"
+  },
+  {
+   "fetch_from": "room.room_name",
+   "fieldname": "room_name",
+   "fieldtype": "Data",
+   "label": "Room Name"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-30 11:54:33.852824",
- "modified_by": "Administrator",
+ "modified": "2026-04-30 12:24:15.654573",
+ "modified_by": "ajithbm01@gmail.com",
  "module": "V Meet",
  "name": "Bookings",
  "naming_rule": "Expression",

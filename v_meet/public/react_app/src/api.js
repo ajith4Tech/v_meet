@@ -60,12 +60,15 @@ export const postRoom = async (roomData) => {
 };
 
 /**
- * Fetch a list of all bookings
+ * Fetch a list of all bookings, including room_name from the linked Room doctype
  * @returns {Promise<Array>} List of bookings
  */
 export const getBookings = async () => {
   try {
-    const response = await axios.get(`${BASE_URL}/api/resource/Bookings?fields=["*"]&limit_page_length=0`);
+    const fields = encodeURIComponent(JSON.stringify([
+      "name", "user", "room", "room.room_name as room_name", "from_time", "to_time", "status", "modified"
+    ]));
+    const response = await axios.get(`${BASE_URL}/api/resource/Bookings?fields=${fields}&limit_page_length=0`);
     return response.data.data;
   } catch (error) {
     console.error("Error fetching bookings:", error);

@@ -107,7 +107,6 @@ const MyBookings = () => {
              </div>
           ) : (
             bookings.map(booking => {
-              const room = getRoomDetails(booking.room);
               const colors = getStatusColor(booking.status);
               
               return (
@@ -118,10 +117,10 @@ const MyBookings = () => {
                   <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
                     <div className="md:col-span-1">
                       <p className="text-xs font-label-caps text-on-surface-variant mb-1">ROOM NAME</p>
-                      <h3 className="text-lg font-bold text-on-surface">{room.room_name || booking.room}</h3>
+                      <h3 className="text-lg font-bold text-on-surface">{booking.room_name || booking.room}</h3>
                       <p className="text-sm text-on-surface-variant flex items-center gap-1 mt-1">
                         <span className="material-symbols-outlined text-xs">location_on</span>
-                        {room.location || 'Unknown'}
+                        Unknown
                       </p>
                     </div>
                     <div>

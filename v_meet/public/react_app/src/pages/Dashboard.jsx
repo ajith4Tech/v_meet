@@ -154,7 +154,6 @@ const Dashboard = () => {
                 </tr>
               )}
               {bookings.map(booking => {
-                const room = getRoomDetails(booking.room);
                 const colors = getStatusColor(booking.status);
                 return (
                   <tr key={booking.name} className="hover:bg-slate-50/30 transition-colors">
@@ -164,8 +163,8 @@ const Dashboard = () => {
                            <span className="material-symbols-outlined text-slate-400">meeting_room</span>
                         </div>
                         <div>
-                          <p className="font-bold text-on-surface">{room.room_name || booking.room}</p>
-                          <p className="text-xs text-slate-500">{room.location || 'Unknown Location'}</p>
+                          <p className="font-bold text-on-surface">{booking.room_name || booking.room}</p>
+                          <p className="text-xs text-slate-500">Unknown Location</p>
                         </div>
                       </div>
                     </td>

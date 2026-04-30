@@ -211,7 +211,7 @@ const AdminBookings = () => {
                         <span className="text-on-surface font-medium truncate max-w-[140px]" title={booking.user}>{booking.user}</span>
                       </div>
                     </td>
-                    <td className="px-5 py-4 font-medium text-on-surface">{booking.room || '—'}</td>
+                    <td className="px-5 py-4 font-medium text-on-surface">{booking.room_name || booking.room || '—'}</td>
                     <td className="px-5 py-4 text-on-surface-variant whitespace-nowrap">{formatDateTime(booking.from_time)}</td>
                     <td className="px-5 py-4 text-on-surface-variant whitespace-nowrap">{formatDateTime(booking.to_time)}</td>
                     <td className="px-5 py-4">
