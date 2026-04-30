@@ -164,7 +164,7 @@ const Dashboard = () => {
                         </div>
                         <div>
                           <p className="font-bold text-on-surface">{booking.room_name || booking.room}</p>
-                          <p className="text-xs text-slate-500">Unknown Location</p>
+                          <p className="text-xs text-slate-500">{booking.room_location || 'Location not set'}</p>
                         </div>
                       </div>
                     </td>

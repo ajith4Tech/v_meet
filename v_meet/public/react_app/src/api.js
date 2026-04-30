@@ -60,13 +60,20 @@ export const postRoom = async (roomData) => {
 };
 
 /**
- * Fetch a list of all bookings, including room_name from the linked Room doctype
+ * Fetch a list of all bookings, including room details from the linked Room doctype
  * @returns {Promise<Array>} List of bookings
  */
 export const getBookings = async () => {
   try {
     const fields = encodeURIComponent(JSON.stringify([
-      "name", "user", "room", "room.room_name as room_name", "from_time", "to_time", "status", "modified"
+      "name", "user", "room",
+      "room.room_name as room_name",
+      "room.location as room_location",
+      "room.capacity as room_capacity",
+      "room.floor as room_floor",
+      "room.block as room_block",
+      "room.room_type as room_type",
+      "from_time", "to_time", "status", "modified"
     ]));
     const response = await axios.get(`${BASE_URL}/api/resource/Bookings?fields=${fields}&limit_page_length=0`);
     return response.data.data;

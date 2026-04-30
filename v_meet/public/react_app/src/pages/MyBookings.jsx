@@ -120,7 +120,7 @@ const MyBookings = () => {
                       <h3 className="text-lg font-bold text-on-surface">{booking.room_name || booking.room}</h3>
                       <p className="text-sm text-on-surface-variant flex items-center gap-1 mt-1">
                         <span className="material-symbols-outlined text-xs">location_on</span>
-                        Unknown
+                        {booking.room_location || 'Location not set'}
                       </p>
                     </div>
                     <div>
