@@ -4,6 +4,12 @@
 
 ---
 
+## 📄 Complete API & Architecture Documentation
+Detailed API documentation, system architecture, DB schema, component hierarchy, and assumptions are available in the [DOCUMENTATION.md](DOCUMENTATION.md) file.
+
+---
+
+
 ## 📸 Overview
 
 VMeet provides:
