@@ -2,6 +2,10 @@
 
 This document contains complete API specifications, system architecture, DB schema, component hierarchy, and development assumptions for the **VMeet Meeting Room Booking App**.
 
+> [!NOTE]
+> The full Swagger OpenAPI 3.0 specification is available in the [openapi.yaml](openapi.yaml) file.
+
+
 ---
 
 ## 🏗️ System Architecture

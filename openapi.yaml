@@ -1,0 +1,211 @@
+openapi: 3.0.0
+info:
+  title: VMeet — Meeting Room Booking API
+  version: 1.0.0
+  description: API specifications for the VMeet full-stack room reservation platform built on Frappe and React.
+servers:
+  - url: /
+    description: Local or production Frappe base URL
+paths:
+  /api/method/v_meet.v_meet.api.get_current_user_info:
+    get:
+      summary: Retrieve current authenticated user session
+      description: Returns the user ID and whether the user is an Administrator.
+      responses:
+        '200':
+          description: Session details retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: object
+                    properties:
+                      user:
+                        type: string
+                        example: ajith@example.com
+                      is_admin:
+                        type: boolean
+                        example: false
+
+  /api/method/v_meet.v_meet.api.update_booking_status:
+    post:
+      summary: Modify the lifecycle status of a booking (Admin only)
+      description: Changes the state of a reservation (e.g., to Approved, Cancelled, etc.).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - booking_name
+                - status
+              properties:
+                booking_name:
+                  type: string
+                  example: BKG-0001
+                status:
+                  type: string
+                  enum: [Pending, Approved, Occupied, Free To Use, Cancelled]
+                  example: Approved
+      responses:
+        '200':
+          description: Booking status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: BKG-0001
+                      status:
+                        type: string
+                        example: Approved
+
+  /api/resource/Room:
+    get:
+      summary: Retrieve all rooms
+      description: Returns a list of meeting rooms.
+      parameters:
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
+            example: '["name","room_name","capacity","room_type"]'
+      responses:
+        '200':
+          description: List of rooms retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Room'
+    post:
+      summary: Create a room (Admin only)
+      description: Adds a new meeting space record to the catalog.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Room'
+      responses:
+        '200':
+          description: Room successfully added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Room'
+
+  /api/resource/Room/{name}:
+    delete:
+      summary: Delete a room (Admin only)
+      description: Permanently deletes a specific room record.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+          example: Saturn Boardroom
+      responses:
+        '200':
+          description: Room successfully deleted
+
+  /api/resource/Bookings:
+    get:
+      summary: List all active bookings
+      description: Returns all recorded room bookings.
+      responses:
+        '200':
+          description: List of bookings retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Booking'
+    post:
+      summary: Create a room booking
+      description: Reserves a meeting space for a given duration.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+      responses:
+        '200':
+          description: Booking successfully recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Booking'
+
+components:
+  schemas:
+    Room:
+      type: object
+      required:
+        - room_name
+        - capacity
+      properties:
+        name:
+          type: string
+          example: Saturn Boardroom
+        room_name:
+          type: string
+          example: Saturn Boardroom
+        capacity:
+          type: integer
+          example: 12
+        room_type:
+          type: string
+          example: Conference
+    Booking:
+      type: object
+      required:
+        - user
+        - room
+        - from_time
+        - to_time
+      properties:
+        name:
+          type: string
+          example: BKG-0001
+        user:
+          type: string
+          example: ajith@example.com
+        room:
+          type: string
+          example: Saturn Boardroom
+        from_time:
+          type: string
+          example: "2026-05-01 14:00:00"
+        to_time:
+          type: string
+          example: "2026-05-01 16:00:00"
+        status:
+          type: string
+          enum: [Pending, Approved, Occupied, Free To Use, Cancelled]
+          example: Pending

@@ -10,6 +10,7 @@ const BookRoom = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [inlineConflict, setInlineConflict] = useState('');
 
   const [formData, setFormData] = useState({
     room: '',
@@ -31,12 +32,48 @@ const BookRoom = () => {
       });
   }, []);
 
+  const checkConflict = (room, fromTime, toTime) => {
+    if (!room || !fromTime || !toTime) {
+      setInlineConflict('');
+      return;
+    }
+
+    const selfFrom = new Date(fromTime);
+    const selfTo = new Date(toTime);
+
+    if (isNaN(selfFrom.getTime()) || isNaN(selfTo.getTime())) return;
+
+    if (selfFrom >= selfTo) {
+      setInlineConflict('Invalid duration: Start time must be strictly before end time.');
+      return;
+    }
+
+    const conflict = allBookings.find(b => {
+      if (b.room !== room || b.status === 'Cancelled') return false;
+      const bFrom = new Date(b.from_time);
+      const bTo = new Date(b.to_time);
+      return selfFrom < bTo && selfTo > bFrom;
+    });
+
+    if (conflict) {
+      setInlineConflict(`Booking conflict detected: Room is already booked during this time.`);
+    } else {
+      setInlineConflict('');
+    }
+  };
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const nextFormData = { ...formData, [e.target.name]: e.target.value };
+    setFormData(nextFormData);
+    checkConflict(nextFormData.room, nextFormData.from_time, nextFormData.to_time);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (inlineConflict && !inlineConflict.includes('Invalid duration')) {
+      setErrorMsg(inlineConflict);
+      return;
+    }
     setSubmitting(true);
     setErrorMsg('');
 
@@ -77,7 +114,6 @@ const BookRoom = () => {
     }
   };
 
-  // Helper for Time Gaps
   const getSelectedDateBookings = () => {
     if (!formData.room || !formData.from_time) return [];
     const selectedDate = formData.from_time.split('T')[0];
@@ -95,6 +131,39 @@ const BookRoom = () => {
   const formatTimeOnly = (dtString) => {
     if (!dtString) return '';
     return new Date(dtString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const generateICS = () => {
+    const formatICSDate = (dtStr) => {
+      if (!dtStr) return '';
+      const d = new Date(dtStr);
+      return d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    };
+
+    const start = formatICSDate(formData.from_time);
+    const end = formatICSDate(formData.to_time);
+
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//VMeet Booking App//NONSGML v1.0//EN',
+      'BEGIN:VEVENT',
+      `SUMMARY:Meeting at Room: ${formData.room}`,
+      `DTSTART:${start}`,
+      `DTEND:${end}`,
+      'DESCRIPTION:Meeting reserved via VMeet Room Booking Portal.',
+      'STATUS:CONFIRMED',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `VMeet_Booking_${formData.room.replace(/\s+/g, '_')}.ics`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -223,6 +292,14 @@ const BookRoom = () => {
               </div>
             </div>
 
+            {/* Inline Conflict Validation Message */}
+            {inlineConflict && (
+              <div id="inline-conflict-warning" className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-center gap-4">
+                <span className="material-symbols-outlined text-amber-600">warning</span>
+                <p className="text-amber-800 text-body-sm font-semibold">{inlineConflict}</p>
+              </div>
+            )}
+
             {/* Inline Feedback Examples */}
             {errorMsg && (
               <div id="error-message">
@@ -236,7 +313,7 @@ const BookRoom = () => {
             {/* Submit Button */}
             <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-4">
               <button type="button" className="px-6 h-[44px] rounded-xl font-button text-button text-secondary hover:bg-secondary/5 transition-all" onClick={() => navigate(-1)}>Cancel</button>
-              <button type="submit" disabled={submitting} className="bg-primary-container text-white px-8 h-[44px] rounded-xl font-button text-button hover:bg-primary transition-all flex items-center gap-2 disabled:opacity-50">
+              <button type="submit" disabled={submitting || (!!inlineConflict && !inlineConflict.includes('Invalid duration'))} className="bg-primary-container text-white px-8 h-[44px] rounded-xl font-button text-button hover:bg-primary transition-all flex items-center gap-2 disabled:opacity-50">
                 {submitting ? 'Submitting...' : 'Confirm Booking'}
                 {!submitting && <span className="material-symbols-outlined text-[18px]">calendar_today</span>}
               </button>
@@ -255,7 +332,12 @@ const BookRoom = () => {
             </div>
             <h3 className="font-h3 text-h3 text-on-surface">Booking Finalized</h3>
             <p className="font-body-md text-on-surface-variant">Your reservation has been saved.</p>
-            <button className="mt-4 w-full py-3 bg-primary text-white rounded-xl font-button" onClick={() => { setShowSuccess(false); navigate('/my-bookings'); }}>View My Bookings</button>
+            
+            <button className="mt-4 w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-button flex items-center justify-center gap-2" onClick={generateICS}>
+              <span className="material-symbols-outlined text-[18px]">download</span> Add to Calendar (.ics)
+            </button>
+            
+            <button className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-button" onClick={() => { setShowSuccess(false); navigate('/my-bookings'); }}>View My Bookings</button>
           </div>
         </div>
       )}

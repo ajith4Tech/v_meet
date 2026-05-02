@@ -100,6 +100,39 @@ const MyBookings = () => {
     return matchStatus && matchSearch;
   });
 
+  const downloadICS = (booking) => {
+    const formatICSDate = (dtStr) => {
+      if (!dtStr) return '';
+      const d = new Date(dtStr);
+      return d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    };
+
+    const start = formatICSDate(booking.from_time);
+    const end = formatICSDate(booking.to_time);
+
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//VMeet Booking App//NONSGML v1.0//EN',
+      'BEGIN:VEVENT',
+      `SUMMARY:Meeting at Room: ${booking.room_name || booking.room}`,
+      `DTSTART:${start}`,
+      `DTEND:${end}`,
+      'DESCRIPTION:Meeting reserved via VMeet Room Booking Portal.',
+      'STATUS:CONFIRMED',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `VMeet_Booking_${(booking.room_name || booking.room).replace(/\s+/g, '_')}.ics`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (loading) {
     return <div className="p-8 text-center pt-8 min-h-screen">Loading your bookings...</div>;
   }
@@ -209,7 +242,9 @@ const MyBookings = () => {
                       </div>
                     </div>
                     <div className="flex items-center md:justify-end gap-3">
-                      <span className="text-xs font-mono bg-slate-50 text-slate-500 px-2 py-1 rounded border border-slate-100">{booking.name}</span>
+                      <button onClick={() => downloadICS(booking)} className="text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-3 py-1.5 rounded-lg border border-indigo-100 transition-all flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[16px]">download</span> Export (.ics)
+                      </button>
                     </div>
                   </div>
                 </div>
